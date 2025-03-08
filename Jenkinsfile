@@ -1,32 +1,85 @@
 pipeline {
     agent any
+
     triggers {
         cron('H */12 * * *') // Runs every 12 hours
     }
+
+    environment {
+        SONAR_PROJECT_KEY = 'UnitTestCode'
+        SONAR_ORG = 'shetkarsagar'
+        SONAR_TOKEN = "737a7b1fc98c47a953205e4688a89928398f1b04"
+        SONAR_HOST_URL = 'https://sonarcloud.io'
+        PYTHON_PATH = 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe'
+        PROMETHEUS_METRICS_PATH = 'C:\\prometheus\\jenkins_metrics.prom'
+    }
+
     stages {
-        stage('Check Python Version') {
-            steps {
-                bat 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe --version'
-            }
-        }
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/shetkarsagar/UnitTestCode.git'
+                git 'https://github.com/your-repo.git'
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                bat 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pip install -r requirements.txt'
+                bat '"%PYTHON_PATH%" -m pip install -r requirements.txt'
             }
         }
+
         stage('Run Unit Tests') {
             steps {
-                bat 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pytest'
+                script {
+                    def startTime = System.currentTimeMillis()
+                    def pytestResult = bat(
+                        returnStdout: true,
+                        script: 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pytest --junitxml=pytest-report.xml --cov=my_project --cov-report=xml:coverage.xml'
+                    ).trim()
+                    def endTime = System.currentTimeMillis()
+                    def duration = (endTime - startTime) / 1000
+                    echo "Execution Time: ${duration} seconds"
+
+                    def passedTests = pytestResult.count('passed')
+                    def failedTests = pytestResult.count('failed')
+
+                    // Write Prometheus Metrics
+                    writeFile file: PROMETHEUS_METRICS_PATH, text: """
+                    jenkins_unit_test_execution_time ${duration}
+                    jenkins_unit_test_passed ${passedTests}
+                    jenkins_unit_test_failed ${failedTests}
+                    """
+                }
             }
         }
-        stage('Generate Coverage Report') {
+
+        stage('Extract SonarCloud Metrics') {
             steps {
-                bat  'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pytest --cov=app --cov-report=xml --junitxml=report.xml'
+                script {
+                    def sonarResults = bat(
+                        returnStdout: true,
+                        script: 'curl -u ${SONAR_TOKEN}: https://sonarcloud.io/api/measures/component?component=${SONAR_PROJECT_KEY}&metricKeys=coverage,bugs,vulnerabilities,code_smells'
+                    ).trim()
+                    
+                    def coverage = sonarResults.find(/"coverage":"(\d+\.\d+)"/) ? sonarResults.find(/"coverage":"(\d+\.\d+)"/)[1] : 0
+                    def bugs = sonarResults.find(/"bugs":"(\d+)"/) ? sonarResults.find(/"bugs":"(\d+)"/)[1] : 0
+                    def vulnerabilities = sonarResults.find(/"vulnerabilities":"(\d+)"/) ? sonarResults.find(/"vulnerabilities":"(\d+)"/)[1] : 0
+                    def codeSmells = sonarResults.find(/"code_smells":"(\d+)"/) ? sonarResults.find(/"code_smells":"(\d+)"/)[1] : 0
+
+                    writeFile file: PROMETHEUS_METRICS_PATH, text: """
+                    jenkins_code_coverage ${coverage}
+                    jenkins_code_bugs ${bugs}
+                    jenkins_code_vulnerabilities ${vulnerabilities}
+                    jenkins_code_smells ${codeSmells}
+                    """
+                }
+            }
+        }
+
+        stage('Publish Prometheus Metrics') {
+            steps {
+                bat '''
+                copy %PROMETHEUS_METRICS_PATH% C:\\prometheus\\jenkins_metrics.prom /Y
+                '''
             }
         }
     }
