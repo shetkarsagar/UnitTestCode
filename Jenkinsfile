@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Check Python Version') {
             steps {
-                sh 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe --version'
+                bat 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe --version'
             }
         }
         stage('Checkout Code') {
