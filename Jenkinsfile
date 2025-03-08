@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-               git 'https://github.com/shetkarsagar/UnitTestCode.git'
+               git branch: 'main', url: 'https://github.com/shetkarsagar/UnitTestCode.git'
             }
         }
 
