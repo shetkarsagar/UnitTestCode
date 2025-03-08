@@ -80,6 +80,12 @@ pipeline {
             }
         }
 
-        
+        stage('Publish Prometheus Metrics') {
+            steps {
+                bat '''
+                copy %PROMETHEUS_METRICS_PATH% C:\\Users\\aakas\\Desktop\\Sagar\\prometheus-3.2.1.windows-amd64\\prometheus-3.2.1.windows-amd64\\data\\jenkins_metrics.prom /Y
+                '''
+            }
+        }
     }
 }
