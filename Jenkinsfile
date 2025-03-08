@@ -4,6 +4,11 @@ pipeline {
         cron('H */12 * * *') // Runs every 12 hours
     }
     stages {
+        stage('Check Python Version') {
+            steps {
+                sh 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe --version'
+            }
+        }
         stage('Checkout Code') {
             steps {
                 git branch: 'main', url: 'https://github.com/shetkarsagar/UnitTestCode.git'
