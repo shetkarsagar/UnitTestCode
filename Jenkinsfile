@@ -11,17 +11,17 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                bat 'pip install -r requirements.txt'
+                bat 'python -m pip install -r requirements.txt'
             }
         }
         stage('Run Unit Tests') {
             steps {
-                bat 'pytest'
+                bat 'python -m pytest'
             }
         }
         stage('Generate Coverage Report') {
             steps {
-                bat  'pytest --cov=app --cov-report=xml --junitxml=report.xml'
+                bat  'python -m pytest --cov=app --cov-report=xml --junitxml=report.xml'
             }
         }
     }
