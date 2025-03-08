@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/user/repo.git'
+                git 'https://github.com/shetkarsagar/UnitTestCode.git'
             }
         }
         stage('Install Dependencies') {
