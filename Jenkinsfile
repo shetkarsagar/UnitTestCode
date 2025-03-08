@@ -16,17 +16,17 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                bat 'python -m pip install -r requirements.txt'
+                bat 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pip install -r requirements.txt'
             }
         }
         stage('Run Unit Tests') {
             steps {
-                bat 'python -m pytest'
+                bat 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pytest'
             }
         }
         stage('Generate Coverage Report') {
             steps {
-                bat  'python -m pytest --cov=app --cov-report=xml --junitxml=report.xml'
+                bat  'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pytest --cov=app --cov-report=xml --junitxml=report.xml'
             }
         }
     }
