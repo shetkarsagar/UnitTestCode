@@ -80,12 +80,5 @@ pipeline {
             }
         }
 
-        stage('Publish Prometheus Metrics') {
-            steps {
-                bat '''
-                copy %PROMETHEUS_METRICS_PATH% C:\\prometheus\\jenkins_metrics.prom /Y
-                '''
-            }
-        }
     }
 }
