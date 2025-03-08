@@ -11,17 +11,17 @@ pipeline {
         }
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r requirements.txt'
+                bat 'pip install -r requirements.txt'
             }
         }
         stage('Run Unit Tests') {
             steps {
-                sh 'pytest'
+                bat 'pytest'
             }
         }
         stage('Generate Coverage Report') {
             steps {
-                sh 'pytest --cov=app --cov-report=xml --junitxml=report.xml'
+                bat  'pytest --cov=app --cov-report=xml --junitxml=report.xml'
             }
         }
     }
