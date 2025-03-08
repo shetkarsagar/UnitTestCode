@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-               git branch: 'main', url: 'https://github.com/shetkarsagar/UnitTestCode.git'
+               git 'https://github.com/shetkarsagar/UnitTestCode.git'
             }
         }
 
@@ -52,25 +52,30 @@ pipeline {
             }
         }
 
-        stage('Extract SonarCloud Metrics') {
+        stage('Fetch SonarCloud Metrics') {
             steps {
                 script {
                     def sonarResults = bat(
                         returnStdout: true,
-                        script: 'curl -u ${SONAR_TOKEN}: https://sonarcloud.io/api/measures/component?component=${SONAR_PROJECT_KEY}&metricKeys=coverage,bugs,vulnerabilities,code_smells'
+                        script: '''
+                        curl -u ${SONAR_TOKEN}: ^
+                        "https://sonarcloud.io/api/measures/component?component=shetkarsagar_UnitTestCode^&metricKeys=coverage,bugs,vulnerabilities,code_smells"
+                        '''
                     ).trim()
-                    
+
                     def coverage = sonarResults.find(/"coverage":"(\d+\.\d+)"/) ? sonarResults.find(/"coverage":"(\d+\.\d+)"/)[1] : 0
                     def bugs = sonarResults.find(/"bugs":"(\d+)"/) ? sonarResults.find(/"bugs":"(\d+)"/)[1] : 0
                     def vulnerabilities = sonarResults.find(/"vulnerabilities":"(\d+)"/) ? sonarResults.find(/"vulnerabilities":"(\d+)"/)[1] : 0
                     def codeSmells = sonarResults.find(/"code_smells":"(\d+)"/) ? sonarResults.find(/"code_smells":"(\d+)"/)[1] : 0
 
-                    writeFile file: PROMETHEUS_METRICS_PATH, text: """
+                    writeFile file: 'execution_metrics.prom', text: """
                     jenkins_code_coverage ${coverage}
                     jenkins_code_bugs ${bugs}
                     jenkins_code_vulnerabilities ${vulnerabilities}
                     jenkins_code_smells ${codeSmells}
                     """
+
+                    echo "SonarCloud Metrics Collected: Coverage=${coverage}%, Bugs=${bugs}, Vulnerabilities=${vulnerabilities}, Code Smells=${codeSmells}"
                 }
             }
         }
