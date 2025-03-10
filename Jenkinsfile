@@ -6,11 +6,10 @@ pipeline {
     }
 
     environment {
-        SONAR_PROJECT_KEY = 'UnitTestCode'
-        SONAR_ORG = 'shetkarsagar'
-        SONAR_TOKEN = "737a7b1fc98c47a953205e4688a89928398f1b04"
+        SONAR_PROJECT_KEY = credentials('SONAR_PROEJCT')
+        SONAR_ORG =  credentials('SONAR_ORG')
+        SONAR_TOKEN = credentials('SONAR_TOKEN')
         SONAR_HOST_URL = 'https://sonarcloud.io'
-        PYTHON_PATH = 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe'
         PROMETHEUS_METRICS_PATH = 'C:\\prometheus\\jenkins_metrics.prom'
     }
 
@@ -23,7 +22,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat '"%PYTHON_PATH%" -m pip install -r requirements.txt'
+                bat 'python -m pip install -r requirements.txt'
             }
         }
 
@@ -33,7 +32,7 @@ pipeline {
                     def startTime = System.currentTimeMillis()
                     def pytestResult = bat(
                         returnStdout: true,
-                        script: 'C:\\Users\\aakas\\AppData\\Local\\Programs\\Python\\Python39\\python.exe -m pytest --junitxml=pytest-report.xml --cov=my_project --cov-report=xml:coverage.xml'
+                        'python -m pytest --junitxml=pytest-report.xml --cov=my_project --cov-report=xml:coverage.xml'
                     ).trim()
                     def endTime = System.currentTimeMillis()
                     def duration = (endTime - startTime) / 1000
@@ -83,7 +82,7 @@ pipeline {
         stage('Publish Prometheus Metrics') {
             steps {
                 bat '''
-                copy %PROMETHEUS_METRICS_PATH% C:\\Users\\aakas\\Desktop\\Sagar\\prometheus-3.2.1.windows-amd64\\prometheus-3.2.1.windows-amd64\\data\\jenkins_metrics.prom /Y
+                copy %PROMETHEUS_METRICS_PATH% \\data\\jenkins_metrics.prom /Y
                 '''
             }
         }
